@@ -5,7 +5,7 @@ from boto3 import client
 
 def download_object(
     s3_client: object, bucket: str, object_path: str, filename: str
-) -> object:
+) -> None:
     """
     Download in memory an object from an S3 bucket.
     :param s3_client: A boto3 client for S3.
@@ -14,7 +14,7 @@ def download_object(
     :param filename: The path to the file to download to.
     """
     try:
-        s3_object = s3_client.download_file(
+        s3_client.download_file(
             Bucket=bucket, Key=object_path, Filename=filename
         )
         logging.info(
@@ -28,8 +28,6 @@ def download_object(
     except s3_client.exceptions.NoSuchKey as e:
         logging.error('Object %s not found in bucket %s.', object_path, bucket)
         raise e
-
-    return s3_object
 
 
 def upload_file(
