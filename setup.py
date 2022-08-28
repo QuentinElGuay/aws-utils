@@ -7,8 +7,8 @@ setup(
     description='Usefull tools to use tAWS services.',
     author='Quentin Leguay',
     license='GPLv3',
-    install_requires=[],
+    install_requires=['boto3~=1.24.61'],
     setup_requires=['pytest-runner'],
-    tests_require=['pytest~=7.1.2'],
+    tests_require=['pytest~=7.1.2', 'moto[s3,dynamodb,athena]'],
     test_suite='tests',
 )
