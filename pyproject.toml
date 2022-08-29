@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools ~=65.3.0", "wheel"]
+build-backend = "setuptools.build_meta:__legacy__"
+
+[project]
+name = "aws-utils"
+authors = [
+    {name = "Quentin Leguay", email = "quentinleguay.pro@gmail.com"}
+]
+description = "Provide functions to manipulate easily AWS services."
+readme = "README.md"
+version = "0.1.0"
+requires-python = ">=3.10.0"
+license = {text = 'GPLv3'}
+dependencies = [
+    "boto3 ~=1.24.61"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest ~=7.1.2",
+    "moto ~=4.0.1"
+]
+
+[tool.blue]
+line-length = 79
+
+# pyproject.toml
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = [
+    "tests"
+]
+
+[tool.setuptools.packages]
+find = {}  # Scan the project directory with the default parameters
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.md"]}
