@@ -7,7 +7,7 @@ name = "aws-utils"
 authors = [
     {name = "Quentin Leguay", email = "quentinleguay.pro@gmail.com"}
 ]
-description = "Provide functions to manipulate easily AWS services."
+description = "Provide functions to easily manipulate AWS services."
 readme = "README.md"
 version = "0.1.0"
 requires-python = ">=3.10.0"

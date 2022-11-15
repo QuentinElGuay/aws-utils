@@ -1,49 +1,89 @@
 import logging
+from dataclasses import dataclass
+import re
 
-from boto3 import client
+import botocore
 
 
-def download_object(
-    s3_client: object, bucket: str, object_path: str, filename: str
-) -> None:
+class InvalidS3URI(Exception):
+    pass
+
+
+@dataclass
+class S3Object:
+    bucket: str
+    key: str
+
+
+def split_s3_uri(s3_uri: str) -> S3Object:
+    """Split an S3 URI to return a bucket and a key.
+
+    Args:
+        s3_uri (str): S3 URI in the s3://{bucket}/{key} format.
+
+    Raises:
+        InvalidS3URI: The URI passed in argument doesn't match the S3 URI 
+            pattern.
+
+    Returns:
+        S3Object: a simple object containing the bucket and key corresponding 
+            to the URI.
     """
-    Download in memory an object from an S3 bucket.
-    :param s3_client: A boto3 client for S3.
-    :param bucket: The name of the bucket to download from.
-    :param object_path: The path of the object to download.
-    :param filename: The path to the file to download to.
+    s3_uri_pattern = r'^s3://([^/]+)/(.*?/?)$'
+    match = re.search(s3_uri_pattern, s3_uri)
+    
+    if not match:
+        raise InvalidS3URI(f'{s3_uri} doesn\'t match the S3 URI pattern.')
+
+    bucket = match.groups()[0]
+    key = match.groups()[1]
+    return S3Object(bucket, key)
+
+
+
+def download_file(
+    client: botocore.client.BaseClient,
+    bucket: str,
+    object_key: str,
+    file_name: str
+):
+    """Download and object from S3.
+
+    Args:
+        client (botocore.client.S3): S3 Client from boto3.
+        bucket (str): Name of the bucket to download from.
+        object_key (str): Key of the object to download.
+        file_name (str): Path to the local file system to store the downloaded
+            object to.
     """
-    try:
-        s3_client.download_file(
-            Bucket=bucket, Key=object_path, Filename=filename
-        )
-        logging.info(
-            'Object s3://%s/%s downloaded with success.', bucket, object_path
-        )
 
-    except s3_client.exceptions.NoSuchBucket as e:
-        logging.error("The specified bucket %s doesn't exists.", bucket)
-        raise e
+    logging.info('Downloading file s3://%s/%s', bucket, object_key)
+    object = client.download_file(
+        Bucket=bucket,
+        Key=object_key,
+        Filename=file_name
+    )
+    logging.debug(f'Object downloaded to %s.', file_name)
 
-    except s3_client.exceptions.NoSuchKey as e:
-        logging.error('Object %s not found in bucket %s.', object_path, bucket)
-        raise e
+    return object
 
 
 def upload_file(
-    s3_client: object, file_path: str, bucket: str, object_path: str
-) -> None:
+    client: botocore.client.BaseClient,
+    file_name: str,
+    bucket: str,
+    object_key:str
+):
     """Upload a file to an S3 bucket
-    :param s3_client: A boto3 client for S3.
-    :param file_path: The path to the file to upload.
-    :param bucket: The name of the bucket to upload to.
-    :param object_path: The name of the object to upload to.
+    Args:
+        client (botocore.client.S3): S3 Client from boto3.
+        file_name (str): Name of the file to upload.
+        bucket (str): Name of the destination bucket.
+        object_key (str): Destination key in the bucket.
     """
 
-    # Upload the file
-    logging.info('Uploading %s to s3://%s/%s.', file_path, bucket, object_path)
-    try:
-        s3_client.upload_file(file_path, bucket, object_path)
-    except Exception as e:
-        logging.error(e)
-        raise e
+    logging.info(f'Uploading object {file_name} to s3://{object_key}.')
+
+    client.upload_file(file_name, bucket, object_key)
+
+    logging.debug(f'Object uploaded.')
